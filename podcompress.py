@@ -3,6 +3,8 @@ import feedparser
 import os
 import subprocess
 
+podcast_dir = "/home/chris/Podcasts/"
+
 names = []
 links = []
 
@@ -27,28 +29,42 @@ link = links[podcast_number-1]
 print("Reading from: " + link)
 podcast = feedparser.parse(link)
 
-directory = "./" + name
+directory = podcast_dir + name
 if not os.path.exists(directory):
+	print("Making directory: " + directory)
 	os.makedirs(directory)
 
+titles = []
+download_links = []
+y = 0
 for entry in podcast.entries:
-	print()
-	print("\tPodcast: " + entry.title)
-	print("\tDate: " + entry.published)
-	print("\tLink: " + entry.enclosures[0].url)
-	print()
+	y = y + 1
+	print("\t" + str(y) + ". " + entry.title)
+	#print("\tDate: " + entry.published)
+	#print("\tLink: " + entry.enclosures[0].url)
+	#print()
+	
+	titles.append(entry.title)
+	download_links.append(entry.enclosures[0].url)
 
-	file_path = "./" + name + "/" + entry.title + ".mp3"
-	compressed_file_path = "./" + name + "/" + entry.title + "_compressed.mp3"
+episode_number = 0
+while episode_number < 1 or episode_number > len(titles):
+	episode_number = int(input("Which episode? (1 - " + str(len(titles)) + ") "))
+
+episode_title = titles[episode_number - 1]
+episode_link = download_links[episode_number - 1]
+
+file_path = podcast_dir + name + "/" + episode_title + ".mp3"
+compressed_file_path = podcast_dir + name + "/" + episode_title + "_compressed.mp3"
 	
-	print("\t\tDownloading...")
-	f = urlopen(entry.enclosures[0].url)
-	data = f.read()
-	with open(file_path, "wb") as code:
-		code.write(data)
+print("\t\tDownloading to " + file_path + " ...")
+f = urlopen(episode_link)
+data = f.read()
+with open(file_path, "wb") as code:
+	code.write(data)
+
+print("\t\tCompressing to " + compressed_file_path + " ...")
+subprocess.call(["lame","-S","--nohist","-b","32",file_path,compressed_file_path])
 	
-	print("\t\tCompressing...")
-	subprocess.call(["lame","-S","--nohist","-b","32",file_path,compressed_file_path])
-	
-	subprocess.call(["rm",file_path])
-	print("\t\tDone!")
+subprocess.call(["rm",file_path])
+print("\t\tDone!")
