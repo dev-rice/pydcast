@@ -17,19 +17,23 @@ for name in names:
 	x = x + 1
 	print(str(x) + ". " + name)
 	
-podcast_number = 0
-while podcast_number < 1 or podcast_number > len(links):
-	podcast_number = int(input("Which podcast? (1 - " + str(len(links)) + ") "))
 
-name = names[podcast_number-1]
-link = links[podcast_number-1]
-	
-print("Reading from: " + link)
-podcast = feedparser.parse(link)
+podcast_number = int(input("Which podcast? (1 - " + str(len(links)) + ") "))
+if podcast_number <= len(links):
+	print("Reading from: " + links[podcast_number-1])
+	podcast = feedparser.parse(links[podcast_number-1])
 
-directory = "./" + name
+title = podcast.feed.title
+description = podcast.feed.description
+latest_podcast = podcast.entries[0]
+
+directory = "./" + title
 if not os.path.exists(directory):
 	os.makedirs(directory)
+
+#print()
+#print("Title: " + title)
+#print("Description: " + description)
 
 for entry in podcast.entries:
 	print()
@@ -38,13 +42,13 @@ for entry in podcast.entries:
 	print("\tLink: " + entry.enclosures[0].url)
 	print()
 
-	file_path = "./" + name + "/" + entry.title + ".mp3"
-	compressed_file_path = "./" + name + "/" + entry.title + "_compressed.mp3"
+	file_path = "./" + title + "/" + entry.title + ".mp3"
+	compressed_file_path = "./" + title + "/" + entry.title + "_compressed.mp3"
 	
 	print("\t\tDownloading...")
 	f = urlopen(entry.enclosures[0].url)
 	data = f.read()
-	with open(file_path, "wb") as code:
+	with open("./" + title + "/" + entry.title + ".mp3", "wb") as code:
 		code.write(data)
 	
 	print("\t\tCompressing...")
